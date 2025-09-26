@@ -3,9 +3,11 @@ using System.Collections;
 using UnityEngine;
 
 public class MainMenu : MonoBehaviour {
+    public GameObject gameMenu;
     private CanvasGroup mainMenuGroup;
 
     public void StartButtonOnClick() {
+        mainMenuGroup.interactable = false;
         StartCoroutine(FadingRoutine());
     }
 
@@ -20,5 +22,6 @@ public class MainMenu : MonoBehaviour {
         }
         
         gameObject.SetActive(false);
+        gameMenu.SetActive(true);
     }
 }
