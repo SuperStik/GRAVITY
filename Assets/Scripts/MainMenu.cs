@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour {
-    public GameObject gameMenu;
     private CanvasGroup mainMenuGroup;
 
     public void StartButtonOnClick() {
@@ -22,6 +22,6 @@ public class MainMenu : MonoBehaviour {
         }
         
         gameObject.SetActive(false);
-        gameMenu.SetActive(true);
+        SceneManager.LoadScene(1);
     }
 }
