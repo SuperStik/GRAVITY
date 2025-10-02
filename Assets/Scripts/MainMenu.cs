@@ -21,7 +21,6 @@ public class MainMenu : MonoBehaviour {
             yield return new WaitForSeconds(0.01f);
         }
         
-        gameObject.SetActive(false);
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene(1, LoadSceneMode.Single);
     }
 }
