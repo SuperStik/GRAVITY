@@ -54,13 +54,14 @@ public class Player : MonoBehaviour {
         Numerics.Vector2 movevec = new Numerics.Vector2(
             localmovevec.x * yawcos + localmovevec.y * yawsin,
             localmovevec.y * yawcos - localmovevec.x * yawsin);
-
+        movevec *= 0.25f;
+        
         float verticalspeed = 0.0f;
         if (jump.WasPressedThisFrame() && IsGrounded()) {
-            verticalspeed = 16.0f;
+            verticalspeed = 4.0f;
         }
         
-        phys.linearVelocity += new Vector3(movevec.X, verticalspeed, movevec.Y);
+        phys.linearVelocity += (new Vector3(movevec.X, verticalspeed, movevec.Y));
         
         // get outta here when we escape
         if (pause.WasPressedThisFrame()) {
