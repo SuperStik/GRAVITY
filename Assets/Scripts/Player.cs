@@ -12,6 +12,7 @@ public class Player : MonoBehaviour {
 	private InputAction pause;
     private InputAction move;
     private InputAction jump;
+    private InputAction attack;
     
     private Rigidbody phys;
     private Collider collide;
@@ -23,6 +24,7 @@ public class Player : MonoBehaviour {
         pause = InputSystem.actions.FindAction("Pause");
         move = InputSystem.actions.FindAction("Move");
         jump = InputSystem.actions.FindAction("Jump");
+        attack = InputSystem.actions.FindAction("Attack");
         
         phys = GetComponent<Rigidbody>();
         collide = GetComponent<Collider>();
@@ -33,7 +35,7 @@ public class Player : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        Vector2 delta = look.ReadValue<Vector2>();
+        var delta = look.ReadValue<Vector2>();
         pitchyaw += new Numerics.Vector2(-delta.y, delta.x);
         // fancy C# switch statement
         pitchyaw.X = pitchyaw.X switch {
@@ -42,23 +44,31 @@ public class Player : MonoBehaviour {
             _ => pitchyaw.X
         };
 
-        cam.transform.eulerAngles = new Vector3(pitchyaw.X, pitchyaw.Y);
+        Vector3 euler = new(pitchyaw.X, pitchyaw.Y);
+        cam.transform.eulerAngles = euler;
 
         // trig to convert local control axis to world
-        float yawradians = pitchyaw.Y * MathF.PI / 180;
+        var yawradians = pitchyaw.Y * MathF.PI / 180;
         
         var yawsin = MathF.Sin(yawradians);
         var yawcos = MathF.Cos(yawradians);
         
-        Vector2 localmovevec = move.ReadValue<Vector2>();
-        Numerics.Vector2 movevec = new Numerics.Vector2(
+        var localmovevec = move.ReadValue<Vector2>();
+        Numerics.Vector2 movevec = new (
             localmovevec.x * yawcos + localmovevec.y * yawsin,
             localmovevec.y * yawcos - localmovevec.x * yawsin);
         movevec *= 0.25f;
         
-        float verticalspeed = 0.0f;
+        var verticalspeed = 0.0f;
         if (jump.WasPressedThisFrame() && IsGrounded()) {
             verticalspeed = 4.0f;
+        }
+
+        if (attack.WasPressedThisFrame()) {
+            var rot = Quaternion.Euler(euler);
+            Physics.Raycast(cam.transform.position, rot * Vector3.forward, out var hit);
+            Debug.DrawLine(cam.transform.position, hit.point, Color.red, 5.0f, false);
+            print(cam.transform.position.ToString() + ';' + hit.point);
         }
         
         phys.linearVelocity += (new Vector3(movevec.X, verticalspeed, movevec.Y));
