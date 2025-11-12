@@ -7,6 +7,7 @@ using Numerics = System.Numerics;
 
 public class Player : MonoBehaviour {
     public Camera cam;
+    public float maxHealth = 100.0f;
     
     private InputAction look;
 	private InputAction pause;
@@ -18,8 +19,12 @@ public class Player : MonoBehaviour {
     private Collider collide;
 
     private Numerics.Vector2 pitchyaw;
+
+    private float health;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start() {
+        health = maxHealth;
+        
         look = InputSystem.actions.FindAction("Look");
         pause = InputSystem.actions.FindAction("Pause");
         move = InputSystem.actions.FindAction("Move");
@@ -46,7 +51,19 @@ public class Player : MonoBehaviour {
 
         Vector3 euler = new(pitchyaw.X, pitchyaw.Y);
         cam.transform.eulerAngles = euler;
+        
+        // get outta here when we escape
+        if (pause.WasPressedThisFrame()) {
+            Application.Quit();
+            
+#if UNITY_EDITOR
+            // thanks Unity
+            UnityEditor.EditorApplication.isPlaying = false;
+#endif
+        }
+    }
 
+    private void FixedUpdate() {
         // trig to convert local control axis to world
         var yawradians = pitchyaw.Y * MathF.PI / 180;
         
@@ -65,23 +82,13 @@ public class Player : MonoBehaviour {
         }
 
         if (attack.WasPressedThisFrame()) {
-            var rot = Quaternion.Euler(euler);
+            var rot = Quaternion.Euler(cam.transform.eulerAngles);
             Physics.Raycast(cam.transform.position, rot * Vector3.forward, out var hit);
             Debug.DrawLine(cam.transform.position, hit.point, Color.red, 5.0f, false);
             print(cam.transform.position.ToString() + ';' + hit.point);
         }
         
         phys.linearVelocity += (new Vector3(movevec.X, verticalspeed, movevec.Y));
-        
-        // get outta here when we escape
-        if (pause.WasPressedThisFrame()) {
-            Application.Quit();
-            
-#if UNITY_EDITOR
-            // thanks Unity
-            UnityEditor.EditorApplication.isPlaying = false;
-#endif
-        }
     }
     
     private bool IsGrounded() {
