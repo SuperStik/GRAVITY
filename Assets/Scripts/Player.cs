@@ -9,27 +9,20 @@ public class Player : MonoBehaviour {
     public Camera cam;
     public float maxHealth = 100.0f;
     
-    private InputAction look;
-	private InputAction pause;
-    private InputAction move;
-    private InputAction jump;
-    private InputAction attack;
-    
     private Rigidbody phys;
     private Collider collide;
 
+    private Numerics.Vector2 lookDelta;
+    private Vector2 moveDirection;
+    
     private Numerics.Vector2 pitchyaw;
+    
+    private bool didJump = false;
 
     private float health;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start() {
+    private void Start() {
         health = maxHealth;
-        
-        look = InputSystem.actions.FindAction("Look");
-        pause = InputSystem.actions.FindAction("Pause");
-        move = InputSystem.actions.FindAction("Move");
-        jump = InputSystem.actions.FindAction("Jump");
-        attack = InputSystem.actions.FindAction("Attack");
         
         phys = GetComponent<Rigidbody>();
         collide = GetComponent<Collider>();
@@ -38,10 +31,8 @@ public class Player : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        var delta = look.ReadValue<Vector2>();
-        pitchyaw += new Numerics.Vector2(-delta.y, delta.x);
+    private void Update() {
+        pitchyaw += lookDelta;
         // fancy C# switch statement
         pitchyaw.X = pitchyaw.X switch {
             > 90.0f => 90.0f,
@@ -51,16 +42,6 @@ public class Player : MonoBehaviour {
 
         Vector3 euler = new(pitchyaw.X, pitchyaw.Y);
         cam.transform.eulerAngles = euler;
-        
-        // get outta here when we escape
-        if (pause.WasPressedThisFrame()) {
-            Application.Quit();
-            
-#if UNITY_EDITOR
-            // thanks Unity
-            UnityEditor.EditorApplication.isPlaying = false;
-#endif
-        }
     }
 
     private void FixedUpdate() {
@@ -70,25 +51,48 @@ public class Player : MonoBehaviour {
         var yawsin = MathF.Sin(yawradians);
         var yawcos = MathF.Cos(yawradians);
         
-        var localmovevec = move.ReadValue<Vector2>();
         Numerics.Vector2 movevec = new (
-            localmovevec.x * yawcos + localmovevec.y * yawsin,
-            localmovevec.y * yawcos - localmovevec.x * yawsin);
+            moveDirection.x * yawcos + moveDirection.y * yawsin,
+            moveDirection.y * yawcos - moveDirection.x * yawsin);
         movevec *= 0.25f;
         
-        var verticalspeed = 0.0f;
-        if (jump.WasPressedThisFrame() && IsGrounded()) {
-            verticalspeed = 4.0f;
-        }
-
-        if (attack.WasPressedThisFrame()) {
-            var rot = Quaternion.Euler(cam.transform.eulerAngles);
-            Physics.Raycast(cam.transform.position, rot * Vector3.forward, out var hit);
-            Debug.DrawLine(cam.transform.position, hit.point, Color.red, 5.0f, false);
-            print(cam.transform.position.ToString() + ';' + hit.point);
+        var verticalSpeed = 0.0f;
+        if (didJump && IsGrounded()) {
+            verticalSpeed = 4.0f;
+            didJump = false;
         }
         
-        phys.linearVelocity += (new Vector3(movevec.X, verticalspeed, movevec.Y));
+        phys.linearVelocity += (new Vector3(movevec.X, verticalSpeed, movevec.Y));
+    }
+
+    private void OnLook(InputValue val) {
+        var lookInput = val.Get<Vector2>();
+        lookDelta = new Numerics.Vector2(-lookInput.y, lookInput.x);
+    }
+
+    private void OnMove(InputValue val) {
+        moveDirection = val.Get<Vector2>();
+    }
+
+    private void OnJump() {
+        didJump = true;
+    }
+
+    private void OnAttack() {
+        var rot = Quaternion.Euler(cam.transform.eulerAngles);
+        Physics.Raycast(cam.transform.position, rot * Vector3.forward, out var hit);
+        Debug.DrawLine(cam.transform.position, hit.point, Color.red, 5.0f, false);
+        print(cam.transform.position.ToString() + ';' + hit.point);
+    }
+
+    // get outta here when we pause
+    private void OnPause() {
+        Application.Quit();
+            
+#if UNITY_EDITOR
+        // thanks Unity
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
     
     private bool IsGrounded() {
