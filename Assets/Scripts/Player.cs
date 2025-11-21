@@ -84,8 +84,15 @@ public class Player : MonoBehaviour {
     private void OnAttack() {
         var rot = Quaternion.Euler(cam.transform.eulerAngles);
         Physics.Raycast(cam.transform.position, rot * Vector3.forward, out var hit);
+        if (hit.collider != null) {
+            gameObject.SendMessage("OnAttackHit");            
+        }
+
         Debug.DrawLine(cam.transform.position, hit.point, Color.red, 5.0f, false);
-        print(cam.transform.position.ToString() + ';' + hit.point);
+    }
+
+    private void OnAttackHit() {
+        print("Got hit!");
     }
 
     // get outta here when we pause
