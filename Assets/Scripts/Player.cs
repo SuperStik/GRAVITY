@@ -82,16 +82,16 @@ public class Player : MonoBehaviour {
     }
 
     private void OnAttack() {
-        var rot = Quaternion.Euler(cam.transform.eulerAngles);
-        Physics.Raycast(cam.transform.position, rot * Vector3.forward, out var hit);
-        if (hit.collider != null) {
-            gameObject.SendMessage("OnAttackHit");            
+        var rot = cam.transform.localRotation;
+        Physics.Raycast(transform.position, rot * Vector3.forward, out var hit);
+        if (hit.collider) {
+            hit.collider.GetComponent<Player>()?.OnAttackHit();
         }
 
         Debug.DrawLine(cam.transform.position, hit.point, Color.red, 5.0f, false);
     }
 
-    private void OnAttackHit() {
+    public void OnAttackHit() {
         print("Got hit!");
     }
 
