@@ -54,15 +54,18 @@ public class Player : MonoBehaviour {
         Numerics.Vector2 movevec = new (
             moveDirection.x * yawcos + moveDirection.y * yawsin,
             moveDirection.y * yawcos - moveDirection.x * yawsin);
-        movevec *= 0.25f;
+        movevec *= 2.0f;
         
         var verticalSpeed = 0.0f;
         if (didJump && IsGrounded()) {
-            verticalSpeed = 4.0f;
+            verticalSpeed = 32.0f;
             didJump = false;
         }
         
-        phys.linearVelocity += (new Vector3(movevec.X, verticalSpeed, movevec.Y));
+        var mass = phys.mass;
+        phys.AddForce(Physics.gravity * (mass * mass));
+        phys.linearVelocity += new Vector3(movevec.X, verticalSpeed, movevec.Y);
+        phys.linearVelocity *= 0.8f;
     }
 
     private void OnLook(InputValue val) {
