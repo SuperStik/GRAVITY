@@ -15,9 +15,11 @@ public class Player : MonoBehaviour {
     
     private Numerics.Vector2 pitchyaw;
     
-    private bool didJump = false;
-
     private float health;
+    private uint deaths = 0;
+    
+    private bool didJump = false;
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start() {
         health = maxHealth;
@@ -91,7 +93,18 @@ public class Player : MonoBehaviour {
 
     private void OnAttackHit() {
         health -= 5.0f;
-        print("Got hit! Have " + health + " now");
+        if (health <= 0.0f) {
+            Respawn();
+        }
+    }
+
+    // yah I'm lazy, sue me
+    private void Respawn() {
+        ++deaths;
+        health = maxHealth;
+        cam.transform.localRotation = Quaternion.identity;
+        phys.MovePosition(Vector3.zero);
+        print("Deaths: " + deaths);
     }
 
     // get outta here when we pause
