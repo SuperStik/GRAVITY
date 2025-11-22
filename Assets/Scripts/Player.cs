@@ -1,6 +1,4 @@
 using System;
-using NUnit.Framework.Constraints;
-using Unity.Mathematics.Geometry;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Numerics = System.Numerics;
@@ -91,8 +89,9 @@ public class Player : MonoBehaviour {
         Debug.DrawLine(cam.transform.position, hit.point, Color.red, 5.0f, false);
     }
 
-    public void OnAttackHit() {
-        print("Got hit!");
+    private void OnAttackHit() {
+        health -= 5.0f;
+        print("Got hit! Have " + health + " now");
     }
 
     // get outta here when we pause
